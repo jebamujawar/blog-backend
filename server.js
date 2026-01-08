@@ -11,7 +11,7 @@ const app = express();
 
 // Allow only your GitHub Pages frontend
 app.use(cors({
-  origin: ["https://jebamujawar.github.io/blog-frontend"], // Replace with your actual GitHub Pages URL
+  origin: ["https://jebamujawar.github.io"], // Replace with your actual GitHub Pages URL
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
