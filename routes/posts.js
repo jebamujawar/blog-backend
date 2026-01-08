@@ -2,7 +2,13 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/Post");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+
 
 // Middleware: Auth
 function auth(req, res, next) {
