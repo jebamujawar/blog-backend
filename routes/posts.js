@@ -2,54 +2,89 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/Post");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = "supersecretkey";
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
-// Middleware
+// Middleware: Auth
 function auth(req, res, next) {
-  const token = req.header("Authorization")?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "No token" });
+  const token = req.header("Authorization")?.split(" ")[1]; // "Bearer TOKEN"
+  if (!token) return res.status(401).json({ error: "No token provided" });
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.userId = decoded.userId;
+    req.userId = decoded.userId; // make sure JWT payload has "userId"
     next();
-  } catch {
+  } catch (err) {
+    console.error("JWT error:", err);
     res.status(401).json({ error: "Invalid token" });
   }
 }
 
-// Get all posts (public)
+// -------------------------
+// GET all posts (public)
+// -------------------------
 router.get("/", async (req, res) => {
-  const posts = await Post.find().populate("author", "name");
-  res.json(posts);
+  try {
+    const posts = await Post.find().populate("author", "name");
+    res.json(posts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
-// Create post
+// -------------------------
+// CREATE post (protected)
+// -------------------------
 router.post("/", auth, async (req, res) => {
   const { title, content } = req.body;
-  const post = await Post.create({ title, content, author: req.userId });
-  res.json(post);
+  if (!title || !content) return res.status(400).json({ error: "Title and content required" });
+
+  try {
+    const post = await Post.create({ title, content, author: req.userId });
+    res.status(201).json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
-// Update post
+// -------------------------
+// UPDATE post (protected)
+// -------------------------
 router.put("/:id", auth, async (req, res) => {
-  const post = await Post.findById(req.params.id);
-  if (!post) return res.status(404).json({ error: "Post not found" });
-  if (post.author.toString() !== req.userId) return res.status(403).json({ error: "Forbidden" });
+  const { title, content } = req.body;
+  if (!title || !content) return res.status(400).json({ error: "Title and content required" });
 
-  post.title = req.body.title;
-  post.content = req.body.content;
-  await post.save();
-  res.json(post);
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    if (post.author.toString() !== req.userId) return res.status(403).json({ error: "Forbidden" });
+
+    post.title = title;
+    post.content = content;
+    await post.save();
+    res.json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
-// Delete post
+// -------------------------
+// DELETE post (protected)
+// -------------------------
 router.delete("/:id", auth, async (req, res) => {
-  const post = await Post.findById(req.params.id);
-  if (!post) return res.status(404).json({ error: "Post not found" });
-  if (post.author.toString() !== req.userId) return res.status(403).json({ error: "Forbidden" });
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    if (post.author.toString() !== req.userId) return res.status(403).json({ error: "Forbidden" });
 
-  await post.remove();
-  res.json({ message: "Post deleted" });
+    await Post.findByIdAndDelete(req.params.id);
+    res.json({ message: "Post deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 module.exports = router;
