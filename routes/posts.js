@@ -6,18 +6,29 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
 // Middleware: Auth
 function auth(req, res, next) {
-  const token = req.header("Authorization")?.split(" ")[1]; // "Bearer TOKEN"
-  if (!token) return res.status(401).json({ error: "No token provided" });
+  const authHeader = req.header("Authorization");
+
+  if (!authHeader) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  if (!authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Malformed token" });
+  }
+
+  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.userId = decoded.userId; // make sure JWT payload has "userId"
+    req.userId = decoded.userId;
     next();
   } catch (err) {
-    console.error("JWT error:", err);
-    res.status(401).json({ error: "Invalid token" });
+    console.error("JWT error:", err.message);
+    return res.status(401).json({ error: "Invalid token" });
   }
 }
+
+
 
 // -------------------------
 // GET all posts (public)
