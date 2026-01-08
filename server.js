@@ -8,9 +8,15 @@ const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
 
 const app = express();
+const cors = require("cors");
+
+// Allow only your GitHub Pages frontend
 app.use(cors({
-  origin: [" https://jebamujawar.github.io/blog-frontend"] // GitHub Pages URL
+  origin: ["https://jebamujawar.github.io/blog-frontend"], // Replace with your actual GitHub Pages URL
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 
 app.use(bodyParser.json());
 
