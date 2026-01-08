@@ -8,7 +8,6 @@ const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
 
 const app = express();
-const cors = require("cors");
 
 // Allow only your GitHub Pages frontend
 app.use(cors({
