@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-require("dotenv").config(); // Load environment variables from .env
+require("dotenv").config(); // optional if you want local .env
 
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
@@ -12,17 +12,10 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // MongoDB connection
-const mongoURI = process.env.MONGO_URI; // Set this in Render environment variables
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => {
-    console.log("MongoDB Connected");
-  })
-  .catch((error) => {
-    console.log("MongoDB connection error:", error);
-  });
+const mongoURI = process.env.MONGO_URI; // Set in Render dashboard or local .env
+mongoose.connect(mongoURI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch((error) => console.log("MongoDB connection error:", error));
 
 // Routes
 app.use("/api/auth", authRoutes);
