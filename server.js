@@ -8,7 +8,10 @@ const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [" https://jebamujawar.github.io/blog-frontend"] // GitHub Pages URL
+}));
+
 app.use(bodyParser.json());
 
 // MongoDB connection
